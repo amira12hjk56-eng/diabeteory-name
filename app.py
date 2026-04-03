@@ -8,5 +8,5 @@ model = joblib.load('diabetes_model.pkl')
 st.title("نظام التنبؤ بالسكري")
 age = st.number_input("العمر", min_value=1)
 if st.button("النتيجة"):
-    prediction = model.predict([[age]])
+    prediction = model.predict({{age,0,0,0,0,0,0,0,}})
     st.write(f"النتيجة: {prediction}")
