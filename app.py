@@ -11,3 +11,4 @@ if st.button("النتيجة"):
 prediction = model.predict([[age, 0, 0, 0, 0, 0, 0, 0]])
     st.write(f"النتيجة: {prediction[0]}")
    
+   
