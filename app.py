@@ -3,59 +3,44 @@ import pandas as pd
 import joblib
 import numpy as np
 
-# تحميل الموديل
+# 1. تحميل الموديل
 model = joblib.load('diabetes_model.pkl')
 
-st.set_page_config(page_title="Diabetes Prediction", layout="wide")
+st.set_page_config(page_title="Diabetes Prediction", layout="centered")
 st.title("🏥 نظام التنبؤ بمخاطر السكري")
+st.write("برجاء إدخال البيانات الـ 7 المطلوبة للحصول على التنبؤ:")
 
-st.write("برجاء إدخال البيانات التالية كاملة للحصول على التنبؤ:")
+# 2. خانات الإدخال (الـ 7 اللي الموديل متعود عليهم)
+age = st.number_input("العمر (Age)", value=25)
+gender = st.selectbox("الجنس (Gender)", options=["Male", "Female"])
+bmi = st.number_input("مؤشر كتلة الجسم (BMI)", value=25.0)
+bp = st.number_input("ضغط الدم (Blood Pressure)", value=120)
+glucose = st.number_input("سكر صائم (Fasting Glucose)", value=100)
+hba1c = st.number_input("معدل التراكمي (HbA1c)", value=5.5)
+activity = st.selectbox("النشاط البدني (Physical Activity)", options=["Low", "Moderate", "High"])
 
-# تقسيم الخانات لـ 3 أعمدة
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    age = st.number_input("العمر (Age)", value=25)
-    gender = st.selectbox("الجنس (Gender)", options=["Male", "Female"])
-    bmi = st.number_input("مؤشر كتلة الجسم (BMI)", value=25.0)
-    bp = st.number_input("ضغط الدم (Blood Pressure)", value=120)
-    glucose = st.number_input("سكر صائم (Fasting Glucose)", value=100)
-
-with col2:
-    insulin = st.number_input("الأنسولين (Insulin)", value=10.0)
-    hba1c = st.number_input("معدل التراكمي (HbA1c)", value=5.5)
-    chol = st.number_input("الكوليسترول (Cholesterol)", value=200)
-    trig = st.number_input("الدهون الثلاثية (Triglycerides)", value=150)
-    activity = st.selectbox("النشاط البدني", options=["Low", "Moderate", "High"])
-
-with col3:
-    calories = st.number_input("السعرات اليومية", value=2000)
-    sugar = st.number_input("استهلاك السكر", value=50.0)
-    sleep = st.number_input("ساعات النوم", value=7.0)
-    stress = st.number_input("مستوى التوتر", value=5)
-    family = st.selectbox("تاريخ عائلي للمرض", options=["Yes", "No"])
-    waist = st.number_input("محيط الخصر (Waist)", value=90.0)
-
-# تحويل الاختيارات لأرقام
+# تحويل الاختيارات لأرقام (نفس اللي عملتيه في الكولاب)
 gender_num = 1 if gender == "Male" else 0
-family_num = 1 if family == "Yes" else 0
-activity_map = {"Low": 0, "Moderate": 1, "High": 2}
+# في الكولاب إنتِ استخدمتي LabelEncoder، غالباً الترتيب: High=0, Low=1, Moderate=2 أو حسب الحروف
+activity_map = {"High": 0, "Low": 1, "Moderate": 2}
 
 if st.button("تحليل النتيجة الآن"):
-    # تجميع الـ 16 متغير بالترتيب المظبوط اللي في الإكسيل
+    # 3. تجميع البيانات في مصفوفة (7 قيم بالظبط)
     features = np.array([[
-        age, gender_num, bmi, bp, glucose, insulin, hba1c, chol, trig,
-        activity_map[activity], calories, sugar, sleep, stress, family_num, waist
+        age, gender_num, bmi, bp, glucose, hba1c, activity_map[activity]
     ]])
     
-    # التنبؤ
+    # 4. التنبؤ
     prediction = model.predict(features)
     
     st.markdown("---")
-    # لو الموديل بيطلع 1 يعني خطر، لو 0 يعني سليم
-    if prediction[0] == 1:
-        st.error("⚠️ النتيجة: احتمالية إصابة عالية. يرجى استشارة الطبيب.")
+    # عرض النتيجة (الموديل بيطلع كلمات: High Risk, Low Risk, Prediabetes)
+    result = prediction[0]
+    if result == "High Risk":
+        st.error(f"⚠️ النتيجة: {result}")
+    elif result == "Prediabetes":
+        st.warning(f"🟠 النتيجة: {result}")
     else:
-        st.success("✅ النتيجة: احتمالية إصابة منخفضة. حافظ على صحتك!")
+        st.success(f"✅ النتيجة: {result}")
 
-st.info("هذا النظام مخصص لأغراض تعليمية ضمن مشروع تخرج - أميرة مصطفى")   
+st.info("مشروع تخرج - أميرة مصطفى 2026")
