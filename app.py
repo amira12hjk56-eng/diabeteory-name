@@ -3,23 +3,29 @@ import pandas as pd
 import joblib
 import numpy as np
 
-# تحميل الموديل
-model = joblib.load('diabetes_model.pkl')
+# 1. تحميل الموديل
+try:
+    model = joblib.load('diabetes_model.pkl')
+except:
+    st.error("ملف الموديل مش موجود أو فيه مشكلة في التحميل")
 
 st.title("نظام التنبؤ بالسكري")
-age = st.number_input("العمر", min_value=1, value=30)
+st.write("أدخلي البيانات المطلوبة للحصول على النتيجة")
+
+# 2. إدخال البيانات
+age = st.number_input("العمر", min_value=1, max_value=120, value=30)
 
 if st.button("النتيجة"):
-    # تجهيز 16 قيمة (العمر + 15 صفر)
-    input_values = [age] + [0]*15
+    # 3. تحضير البيانات (العمر + 15 صفر لباقي الخصائص عشان نكمل الـ 16 عمود)
+    features = [age] + [0] * 15
+    final_input = np.array([features])
     
-    # تحويلهم لمصفوفة NumPy (ده بيخلي الموديل يتجاهل أسامي الأعمدة)
-    final_input = np.array([input_values])
-    
-    # التنبؤ
+    # 4. التنبؤ
     prediction = model.predict(final_input)
     
+    # 5. عرض النتيجة
+    st.markdown("---")
     if prediction[0] == 1:
-        st.error("النتيجة: احتمالية إصابة عالية")
+        st.error("⚠️ النتيجة: احتمالية إصابة عالية. يرجى استشارة طبيب.")
     else:
-        st.success("النتيجة: احتمالية إصابة منخفضة")
+        st.success("✅ النتيجة: احتمالية إصابة منخفضة. حافظي على صحتك.")
