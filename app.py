@@ -6,44 +6,51 @@ import numpy as np
 # تحميل الموديل
 model = joblib.load('diabetes_model.pkl')
 
-st.set_page_config(page_title="Diabetes Prediction System", layout="wide")
-
 st.title("🏥 نظام التنبؤ بمخاطر السكري")
-st.write("برجاء إدخال البيانات التالية للحصول على تحليل دقيق:")
 
-# تقسيم الشاشة لصفين عشان الشكل يبقى منظم
-col1, col2 = st.columns(2)
+# مدخلات البيانات بناءً على ملف الإكسيل بتاعك
+col1, col2, col3 = st.columns(3)
 
 with col1:
-    age = st.number_input("العمر (Age)", min_value=1, max_value=120, value=25)
-    gender = st.selectbox("الجنس (Gender)", options=["Male", "Female"])
-    bmi = st.number_input("مؤشر كتلة الجسم (BMI)", value=25.0)
-    blood_pressure = st.number_input("ضغط الدم (Blood Pressure)", value=120)
+    age = st.number_input("Age", value=25)
+    gender = st.selectbox("Gender", options=["Male", "Female"])
+    bmi = st.number_input("BMI", value=25.0)
+    bp = st.number_input("Blood Pressure", value=120)
+    glucose = st.number_input("Fasting Glucose", value=100)
+    insulin = st.number_input("Insulin Level", value=10.0)
 
 with col2:
-    fasting_glucose = st.number_input("سكر صائم (Fasting Glucose)", value=100)
-    hba1c = st.number_input("معدل التراكمي (HbA1c)", value=5.5)
-    cholesterol = st.number_input("الكوليسترول (Cholesterol)", value=200)
-    insulin = st.number_input("الأنسولين (Insulin)", value=10.0)
+    hba1c = st.number_input("HbA1c Level", value=5.5)
+    chol = st.number_input("Cholesterol", value=200)
+    trig = st.number_input("Triglycerides", value=150)
+    activity = st.selectbox("Physical Activity", options=["Low", "Moderate", "High"])
+    calories = st.number_input("Daily Calories", value=2000)
+    sugar = st.number_input("Sugar Intake", value=50.0)
 
-# تحويل الجنس لأرقام (عشان الموديل بيفهم أرقام بس)
-gender_val = 1 if gender == "Male" else 0
+with col3:
+    sleep = st.number_input("Sleep Hours", value=7.0)
+    stress = st.number_input("Stress Level", value=5)
+    family = st.selectbox("Family History", options=["Yes", "No"])
+    waist = st.number_input("Waist Circumference", value=90.0)
 
-if st.button("تحليل النتيجة الآن"):
-    # تجهيز المصفوفة (لازم يكون فيها كل الـ 18 عمود لو الموديل اتدرب عليهم)
-    # هنا هنحط القيم اللي دخلناها والباقي هنحطه بمتوسطات مؤقتة عشان الكود ميوقفش
-    # ملحوظة: لو الموديل مطلع Error، قوليلي عشان نظبط عدد الأصفار بالظبط
+# تحويل الكلمات لأرقام عشان الموديل يفهمها
+gender_num = 1 if gender == "Male" else 0
+activity_map = {"Low": 0, "Moderate": 1, "High": 2}
+family_num = 1 if family == "Yes" else 0
+
+if st.button("تحليل النتيجة"):
+    # ترتيب الـ 17 عمود بالظبط زي الإكسيل
+    features = np.array([[
+        age, gender_num, bmi, bp, glucose, insulin, hba1c, chol, trig,
+        activity_map[activity], calories, sugar, sleep, stress, family_num, waist, 0
+    ]])
     
-    input_data = np.array([[age, gender_val, bmi, blood_pressure, fasting_glucose, 
-                            insulin, hba1c, cholesterol, 150, 1, 2000, 50, 7, 5, 0, 90, 50]]) 
+    # ملحوظة: لو الموديل لسه مطلع Error، جربي تمسحي الـ "0" الأخيرة اللي في المصفوفة فوق
     
-    # التنبؤ
-    prediction = model.predict(input_data)
+    prediction = model.predict(features)
     
     st.markdown("---")
-    if prediction[0] == 1 or prediction[0] == "High Risk":
-        st.error("⚠️ النتيجة: هناك احتمالية إصابة عالية. ينصح بمراجعة الطبيب.")
+    if prediction[0] == 1 or "High" in str(prediction[0]):
+        st.error("⚠️ النتيجة: احتمالية إصابة عالية")
     else:
-        st.success("✅ النتيجة: احتمالية الإصابة منخفضة. استمر في نمط حياتك الصحي!")
-
-st.info("هذا النظام مخصص لأغراض تعليمية ضمن مشروع تخرج.")
+        st.success("✅ النتيجة: احتمالية إصابة منخفضة")
