@@ -1,5 +1,4 @@
-
- import streamlit as st
+import streamlit as st
 import pandas as pd
 import joblib
 import numpy as np
@@ -7,12 +6,12 @@ import numpy as np
 # تحميل الموديل
 model = joblib.load('diabetes_model.pkl')
 
-st.set_page_config(page_title="Diabetes Prediction System", layout="wide")
+st.set_page_config(page_title="Diabetes Prediction", layout="wide")
 st.title("🏥 نظام التنبؤ بمخاطر السكري")
 
-st.write("يرجى إدخال البيانات التالية كاملة للحصول على التنبؤ:")
+st.write("برجاء إدخال البيانات التالية كاملة للحصول على التنبؤ:")
 
-# تقسيم الخانات لـ 3 أعمدة عشان الشكل يبقى منظم ومريح
+# تقسيم الخانات لـ 3 أعمدة
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -37,7 +36,7 @@ with col3:
     family = st.selectbox("تاريخ عائلي للمرض", options=["Yes", "No"])
     waist = st.number_input("محيط الخصر (Waist)", value=90.0)
 
-# تحويل الاختيارات لأرقام بيفهمها الموديل
+# تحويل الاختيارات لأرقام
 gender_num = 1 if gender == "Male" else 0
 family_num = 1 if family == "Yes" else 0
 activity_map = {"Low": 0, "Moderate": 1, "High": 2}
@@ -53,7 +52,8 @@ if st.button("تحليل النتيجة الآن"):
     prediction = model.predict(features)
     
     st.markdown("---")
-    if prediction[0] == 1 or "High" in str(prediction[0]):
+    # لو الموديل بيطلع 1 يعني خطر، لو 0 يعني سليم
+    if prediction[0] == 1:
         st.error("⚠️ النتيجة: احتمالية إصابة عالية. يرجى استشارة الطبيب.")
     else:
         st.success("✅ النتيجة: احتمالية إصابة منخفضة. حافظ على صحتك!")
