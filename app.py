@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import numpy as np
 
 # تحميل الموديل
 model = joblib.load('diabetes_model.pkl')
@@ -9,19 +10,14 @@ st.title("نظام التنبؤ بالسكري")
 age = st.number_input("العمر", min_value=1, value=30)
 
 if st.button("النتيجة"):
-    # قائمة الـ 16 عمود اللي الموديل مستنيها بالظبط
-    columns = [
-        'Age', 'Gender', 'Polyuria', 'Polydipsia', 'sudden weight loss',
-        'weakness', 'Polyphagia', 'Genital thrush', 'visual blurring',
-        'Itching', 'Irritability', 'delayed healing', 'partial paresis',
-        'muscle stiffness', 'Alopecia', 'Obesity'
-    ]
+    # تجهيز 16 قيمة (العمر + 15 صفر)
+    input_values = [age] + [0]*15
     
-    # هنبعت العمر والباقي كله أصفار (قيم افتراضية) عشان الموديل يرضى يشتغل
-    data = [[age] + [0]*15]
-    input_data = pd.DataFrame(data, columns=columns)
+    # تحويلهم لمصفوفة NumPy (ده بيخلي الموديل يتجاهل أسامي الأعمدة)
+    final_input = np.array([input_values])
     
-    prediction = model.predict(input_data)
+    # التنبؤ
+    prediction = model.predict(final_input)
     
     if prediction[0] == 1:
         st.error("النتيجة: احتمالية إصابة عالية")
