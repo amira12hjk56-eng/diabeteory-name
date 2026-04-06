@@ -1,71 +1,42 @@
 import streamlit as st
-import pandas as pd
 import joblib
-import numpy as np
+import pandas as pd
 
-# 1. تحميل الموديل
+# تحميل الموديل والـ Encoder
 model = joblib.load('diabetes_model.pkl')
+le = joblib.load('label_encoder.pkl')
 
-# إعدادات الصفحة
-st.set_page_config(page_title="Diabetes Prediction System", layout="wide")
+st.title("نظام التنبؤ بمخاطر السكري 🩺")
+st.write("برجاء إدخال البيانات التالية لتقييم الحالة:")
 
-# --- القائمة الجانبية (Sidebar) ---
-st.sidebar.title("🔍 تفاصيل المشروع")
-st.sidebar.info(
-    """
-    **اسم المشروع:** نظام التنبؤ بالسكري الذكي  
-    **إعداد الطالبة:** أميرة مصطفى  
-    **دقة النموذج:** 90.08%  
-    **الخوارزمية:** تم استخدام تقنيات التعلم الآلي للتنبؤ بناءً على السجلات الطبية.
-    """
-)
+# عمل خانات لإدخال البيانات (الـ 17 عمود اللي اتدرب عليهم الموديل)
+age = st.number_input("العمر", min_value=1, max_value=100, value=25)
+gender = st.selectbox("النوع", options=['Male', 'Female'])
+bmi = st.number_input("مؤشر كتلة الجسم (BMI)", value=25.0)
+blood_pressure = st.number_input("ضغط الدم", value=120)
+glucose = st.number_input("مستوى الجلوكوز", value=100)
+insulin = st.number_input("مستوى الإنسولين", value=15)
+hba1c = st.number_input("مستوى HbA1c", value=5.5)
+chol = st.number_input("الكوليسترول", value=180)
+trig = st.number_input("الدهون الثلاثية", value=130)
+activity = st.selectbox("مستوى النشاط البدني", options=[0, 1, 2, 3])
+calories = st.number_input("السعرات اليومية", value=2000)
+sugar = st.number_input("كمية السكر اليومية", value=30)
+sleep = st.number_input("ساعات النوم", value=7)
+stress = st.number_input("مستوى التوتر (1-10)", value=5)
+family = st.selectbox("تاريخ العائلة مع السكري", options=['Yes', 'No'])
+waist = st.number_input("محيط الخصر (سم)", value=85)
+score = st.number_input("درجة خطر سابقة (إن وجد)", value=50)
 
-# --- محتوى الصفحة الرئيسي ---
-st.title("🏥 نظام التنبؤ بمخاطر السكري")
-st.markdown("### أدخلي البيانات الحيوية للحصول على تقييم فوري")
-
-# إضافة صورة تعبيرية (اختياري لو عندك لينك صورة)
-# st.image("https://example.com/diabetes-image.jpg", width=700)
-
-# تقسيم المدخلات لعمودين لشكل أرتب
-col1, col2 = st.columns(2)
-
-with col1:
-    age = st.number_input("العمر (Age)", value=25, help="أدخل العمر بالسنوات")
-    gender = st.selectbox("الجنس (Gender)", options=["Male", "Female"])
-    bmi = st.number_input("مؤشر كتلة الجسم (BMI)", value=25.0)
-    bp = st.number_input("ضغط الدم (Blood Pressure)", value=120)
-
-with col2:
-    glucose = st.number_input("سكر صائم (Fasting Glucose)", value=100)
-    hba1c = st.number_input("معدل التراكمي (HbA1c)", value=5.5)
-    activity = st.selectbox("النشاط البدني (Physical Activity)", options=["High", "Low", "Moderate"])
-
-# تحويل الاختيارات لأرقام
-gender_num = 1 if gender == "Male" else 0
-activity_map = {"High": 0, "Low": 1, "Moderate": 2}
-
-st.markdown("---")
-
-if st.button("🚀 تحليل النتيجة الآن"):
-    # تجميع البيانات
-    features = np.array([[age, gender_num, bmi, bp, glucose, hba1c, activity_map[activity]]])
+# زرار التوقع
+if st.button("توقع النتيجة"):
+    # تجهيز البيانات للتوقع
+    gender_enc = 1 if gender == 'Male' else 0
+    family_enc = 1 if family == 'Yes' else 0
     
-    # التنبؤ
-    prediction = model.predict(features)
-    result = str(prediction[0])
+    input_data = [[age, gender_enc, bmi, blood_pressure, glucose, insulin, hba1c, 
+                   chol, trig, activity, calories, sugar, sleep, stress, family_enc, waist, score]]
     
-    # عرض النتيجة بشكل شيك
-    st.subheader("النتيجة النهائية:")
-    if "High" in result:
-        st.error(f"🚨 الحالة: {result}")
-        st.write("ينصح بزيارة الطبيب فوراً وعمل تحاليل إضافية.")
-    elif "Pre" in result:
-        st.warning(f"⚠️ الحالة: {result}")
-        st.write("أنت في مرحلة ما قبل السكري، يرجى الانتباه للنظام الغذائي.")
-    else:
-        st.success(f"✅ الحالة: {result}")
-        st.write("نتائجك جيدة جداً! استمر في الحفاظ على نمط حياة صحي.")
-
-# تذييل الصفحة
-st.markdown("<br><hr><center>مشروع تخرج - كلية الحاسبات والمعلومات © 2026</center>", unsafe_allow_html=True)
+    prediction = model.predict(input_data)
+    
+    st.subheader(f"النتيجة المتوقعة هي: {prediction[0]}")
