@@ -4,7 +4,7 @@ import joblib
 # 1. تحميل الموديل
 model = joblib.load('diabetes_model.pkl')
 
-# 2. قاموس الترجمة
+# 2. قاموس الترجمة الشامل
 result_map = {
     'Normal': 'طبيعي (سليم) ✅',
     'Prediabetics': 'مرحلة ما قبل السكري ⚠️',
@@ -17,7 +17,7 @@ st.set_page_config(page_title="توقع السكري", layout="wide")
 st.title("نظام التنبؤ بمخاطر السكري 🩺")
 st.markdown("---")
 
-# 3. تقسيم الخانات لـ 3 أعمدة عشان الشكل يبقى شيك وميظهرش Error
+# 3. تنظيم الـ 17 خانة في 3 أعمدة
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -49,12 +49,12 @@ if st.button("توقع النتيجة الآن"):
     g_enc = 1 if gender == 'Male' else 0
     f_enc = 1 if family == 'Yes' else 0
     
-    # الـ 17 خانة بالترتيب الصحيح للموديل
+    # إرسال الـ 17 قيمة للموديل
     data = [[age, g_enc, bmi, blood_pressure, glucose, insulin, hba1c, chol, trig, 
              activity, calories, sugar, sleep, stress, f_enc, waist, score]]
     
     pred = model.predict(data)[0]
     res = result_map.get(pred, pred)
     
-    st.info("نتيجة تحليل البيانات:")
+    st.info("نتيجة التحليل:")
     st.subheader(f"التوقع هو: {res}")
